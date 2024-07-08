@@ -12,6 +12,7 @@ public class PlayerController : Singleton<PlayerController>
     private Rigidbody _rb;
     private float _moveSpeed = 5f;
     private Animator _player_Animator;
+    public Animator playerAni => _player_Animator;
 
     protected override void InitManager()
     {
@@ -29,16 +30,13 @@ public class PlayerController : Singleton<PlayerController>
     {
         float _moveHorizontal = Input.GetAxis("Horizontal");
         float _moveVertical = Input.GetAxis("Vertical");
-
-        if (_moveHorizontal == 0 && _moveVertical == 0)
-        {
-            _player_Animator.SetBool("Move", false);
-        }
-        else
-        {
-            _player_Animator.SetBool("Move", true);
-        }
-        _rb.velocity = new Vector3(_moveHorizontal, _rb.velocity.y, _moveVertical) * _moveSpeed;
+        _rb.velocity = new Vector3(JoystickController.Instance.joystickVector.x, _rb.velocity.y, JoystickController.Instance.joystickVector.y) * _moveSpeed;
+        _rb.rotation = Quaternion.LookRotation(new Vector3(JoystickController.Instance.joystickVector.x,0, JoystickController.Instance.joystickVector.y));
     }
 
+    public void F_PlayerMoveAnimation(bool v_state)
+    {
+        _player_Animator.SetBool("Move", v_state);
+        Debug.Log(_player_Animator.GetBool("Move"));
+    }
 }
