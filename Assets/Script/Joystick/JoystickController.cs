@@ -43,7 +43,9 @@ public class JoystickController : Singleton<JoystickController>
         {
             smallStick.transform.position = stickStartPosition + joystickVector * stickRadius;
         }
-        
+        GameManager.Instance._player.GetComponent<PlayerController>().rb.rotation =
+            Quaternion.LookRotation(new Vector3(joystickVector.x, 0, joystickVector.y));
+
     }
 
     public void Drop()
@@ -51,6 +53,7 @@ public class JoystickController : Singleton<JoystickController>
         joystickVector = Vector3.zero;
         smallStick.transform.position = stickStartPosition;
         bigStick.transform.position = stickStartPosition;
+        GameManager.Instance._player.GetComponent<PlayerController>().transform.LookAt(PlayerController.Instance.monsterTransform);
         GameManager.Instance._player.GetComponent<PlayerController>().playerAni.SetBool("Move", false);
     }
 
