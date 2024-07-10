@@ -31,6 +31,11 @@ public class PlayerBullet : MonoBehaviour
         if(collision.gameObject.CompareTag("Monster") || collision.gameObject.CompareTag("Wall"))
         {
             PlayerController.Instance.F_ReturnBulletPool(this);
+            if (collision.gameObject.CompareTag("Monster"))
+            {
+                collision.transform.parent.GetComponent<RoomCondition>().F_ReturnEnemy(collision.gameObject);
+                collision.gameObject.SetActive(false);
+            }
         }
         
     }

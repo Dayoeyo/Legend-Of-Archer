@@ -29,6 +29,8 @@ public class PlayerController : Singleton<PlayerController>
     [Header("=== ABOUT ATTACK ===")]
     [SerializeField] private GameObject _player_Bullet;
     [SerializeField] private GameObject _bullet_parent;
+    private IEnumerator _attack_Coroutine;
+    private RoomCondition _currentRoom;
     private Queue<PlayerBullet> _bullet_Pool;
     private int _bullet_Count = 50;
     private float _attack_Range = 5f;
@@ -39,9 +41,16 @@ public class PlayerController : Singleton<PlayerController>
         _rb = GetComponent<Rigidbody>();
         _player_Animator = GetComponent<Animator>();
 
+        //델리게이트
         _player_Ctr = F_PlayerMove;
 
+        //방 설정
+        transform.parent.GetComponent<RoomCondition>().isVisited = true;
+        StageManager.Instance.currentRoomNum = transform.parent.gameObject.GetComponent<RoomCondition>().roomNum;
         monsterDistance = new Dictionary<GameObject, float>();
+
+        //코루틴 설정
+        _attack_Coroutine = F_PlayerAttack();
 
         //총알 오브젝트 풀링
         _bullet_Pool = new Queue<PlayerBullet>();
@@ -66,25 +75,32 @@ public class PlayerController : Singleton<PlayerController>
 
     public void F_PlayeTrackingStart()
     {
+        _currentRoom = transform.parent.gameObject.GetComponent<RoomCondition>();
         _player_Ctr += F_PlayerTrackingMonster;
-        StartCoroutine(F_PlayerAttack());
+        StartCoroutine(_attack_Coroutine);
     }
 
+    public void F_PlayerTrackingEnd()
+    {
+        _player_Ctr -= F_PlayerTrackingMonster;
+        _player_Animator.SetBool("Attack", false);
+        StopCoroutine(_attack_Coroutine);
+    }
     private void F_PlayerTrackingMonster()
     {
-            for (int l = 0; l < RoomCondition.Instance.monsterList.Count; l++)
+            for (int l = 0; l < _currentRoom.monsterList.Count; l++)
             {
                 Vector3 rayStartPosition = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
-                Vector3 rayEndPosition = new Vector3(RoomCondition.Instance.monsterList[l].transform.position.x, RoomCondition.Instance.monsterList[l].transform.position.y + 0.3f,
-                    RoomCondition.Instance.monsterList[l].transform.position.z);
+                Vector3 rayEndPosition = new Vector3(_currentRoom.monsterList[l].transform.position.x, _currentRoom.monsterList[l].transform.position.y + 0.3f,
+                    _currentRoom.monsterList[l].transform.position.z);
                 Vector3 rayDirect = rayEndPosition - rayStartPosition;
-                _canAttack = Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit);
                 Debug.DrawRay(rayStartPosition, rayDirect, Color.red);
+                _canAttack = Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit);
                 if (_canAttack)
                 {
                     if (monsterRaycastHit.collider.CompareTag("Monster"))
                     {
-                        monsterDistance[RoomCondition.Instance.monsterList[l]] = Vector3.Distance(transform.position, RoomCondition.Instance.monsterList[l].transform.position);
+                        monsterDistance[_currentRoom.monsterList[l]] = Vector3.Distance(transform.position, _currentRoom.monsterList[l].transform.position);
                         _target = F_SetPlayerAttackMonster(monsterDistance);
                         _Finaltarget = _target;
                         monsterTransform = _target.transform;
@@ -93,7 +109,7 @@ public class PlayerController : Singleton<PlayerController>
                     }
                     else
                     {
-                        monsterDistance[RoomCondition.Instance.monsterList[l]] = 1000f;
+                        monsterDistance[_currentRoom.monsterList[l]] = 1000f;
                         _target = null;
                         continue;
                     }
@@ -116,23 +132,27 @@ public class PlayerController : Singleton<PlayerController>
 
     private IEnumerator F_PlayerAttack()
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.5f);
         if (_bullet_Pool.Count <= 0)
         {
             F_CreateBullet();
         }
         while (_bullet_Pool.Count > 0)
         {
-            if (Vector3.Distance(transform.position, _Finaltarget.transform.position) <= _attack_Range)
+            //Debug.Log(_Finaltarget);
+            if (_Finaltarget != null)
             {
-                PlayerBullet _pb = _bullet_Pool.Dequeue();
-                _pb.gameObject.SetActive(true);
-                _pb.F_MoveBullet(_bullet_MoveVec);
-                _player_Animator.SetBool("Attack", true);
-            }
-            else
-            {
-                _player_Animator.SetBool("Attack", false);
+                if (Vector3.Distance(transform.position, _Finaltarget.transform.position) <= _attack_Range)
+                {
+                    PlayerBullet _pb = _bullet_Pool.Dequeue();
+                    _pb.gameObject.SetActive(true);
+                    _pb.F_MoveBullet(_bullet_MoveVec);
+                    _player_Animator.SetBool("Attack", true);
+                }
+                else
+                {
+                    _player_Animator.SetBool("Attack", false);
+                }
             }
             yield return new WaitForSeconds(1f);
         }
