@@ -15,6 +15,9 @@ public class PlayerController : Singleton<PlayerController>
     public Dictionary<GameObject, float> monsterDistance;
     public Transform monsterTransform;
     private RaycastHit monsterRaycastHit;
+    private bool _canAttack = false;
+    private GameObject _target;
+    private GameObject _Finaltarget;
 
     [Header("=== ABOUT MOVEMENT ===")]
     private Rigidbody _rb;
@@ -28,6 +31,7 @@ public class PlayerController : Singleton<PlayerController>
     [SerializeField] private GameObject _bullet_parent;
     private Queue<PlayerBullet> _bullet_Pool;
     private int _bullet_Count = 50;
+    private float _attack_Range = 5f;
     public Vector3 _bullet_MoveVec = Vector3.zero;
 
     protected override void InitManager()
@@ -68,24 +72,25 @@ public class PlayerController : Singleton<PlayerController>
 
     private void F_PlayerTrackingMonster()
     {
-        GameObject _target;
-
             for (int l = 0; l < RoomCondition.Instance.monsterList.Count; l++)
             {
                 Vector3 rayStartPosition = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
                 Vector3 rayEndPosition = new Vector3(RoomCondition.Instance.monsterList[l].transform.position.x, RoomCondition.Instance.monsterList[l].transform.position.y + 0.3f,
                     RoomCondition.Instance.monsterList[l].transform.position.z);
                 Vector3 rayDirect = rayEndPosition - rayStartPosition;
-                if (Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit))
+                _canAttack = Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit);
+                Debug.DrawRay(rayStartPosition, rayDirect, Color.red);
+                if (_canAttack)
                 {
                     if (monsterRaycastHit.collider.CompareTag("Monster"))
                     {
                         monsterDistance[RoomCondition.Instance.monsterList[l]] = Vector3.Distance(transform.position, RoomCondition.Instance.monsterList[l].transform.position);
                         _target = F_SetPlayerAttackMonster(monsterDistance);
+                        _Finaltarget = _target;
                         monsterTransform = _target.transform;
                         _bullet_MoveVec = (monsterTransform.position - transform.position).normalized;
                         continue;
-                }
+                    }
                     else
                     {
                         monsterDistance[RoomCondition.Instance.monsterList[l]] = 1000f;
@@ -118,9 +123,17 @@ public class PlayerController : Singleton<PlayerController>
         }
         while (_bullet_Pool.Count > 0)
         {
-            PlayerBullet _pb = _bullet_Pool.Dequeue();
-            _pb.gameObject.SetActive(true);
-            _pb.F_MoveBullet(_bullet_MoveVec);
+            if (Vector3.Distance(transform.position, _Finaltarget.transform.position) <= _attack_Range)
+            {
+                PlayerBullet _pb = _bullet_Pool.Dequeue();
+                _pb.gameObject.SetActive(true);
+                _pb.F_MoveBullet(_bullet_MoveVec);
+                _player_Animator.SetBool("Attack", true);
+            }
+            else
+            {
+                _player_Animator.SetBool("Attack", false);
+            }
             yield return new WaitForSeconds(1f);
         }
     }
