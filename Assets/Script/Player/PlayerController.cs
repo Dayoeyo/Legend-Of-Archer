@@ -185,4 +185,9 @@ public class PlayerController : Singleton<PlayerController>
     {
         _player_Animator.SetBool("Move", v_state);
     }
+
+    public void F_ChangeAttackSpeed()
+    {
+        //Todo : 공격속도 변경 함수 만들기
+    }
 }
