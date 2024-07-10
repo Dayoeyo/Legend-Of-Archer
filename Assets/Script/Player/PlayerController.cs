@@ -17,7 +17,7 @@ public class PlayerController : Singleton<PlayerController>
     private RaycastHit monsterRaycastHit;
     private bool _canAttack = false;
     private GameObject _target;
-    private GameObject _Finaltarget;
+    public GameObject _finaltarget;
 
     [Header("=== ABOUT MOVEMENT ===")]
     private Rigidbody _rb;
@@ -88,36 +88,48 @@ public class PlayerController : Singleton<PlayerController>
     }
     private void F_PlayerTrackingMonster()
     {
-            for (int l = 0; l < _currentRoom.monsterList.Count; l++)
+            if (_currentRoom.monsterList == null)
             {
-                Vector3 rayStartPosition = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
-                Vector3 rayEndPosition = new Vector3(_currentRoom.monsterList[l].transform.position.x, _currentRoom.monsterList[l].transform.position.y + 0.3f,
-                    _currentRoom.monsterList[l].transform.position.z);
-                Vector3 rayDirect = rayEndPosition - rayStartPosition;
-                Debug.DrawRay(rayStartPosition, rayDirect, Color.red);
-                _canAttack = Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit);
-                if (_canAttack)
+                _player_Ctr -= F_PlayerTrackingMonster;
+            }
+            else
+            {
+                for (int l = 0; l < _currentRoom.monsterList.Count; l++)
                 {
-                    if (monsterRaycastHit.collider.CompareTag("Monster"))
+                    Vector3 rayStartPosition = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
+                    Vector3 rayEndPosition = new Vector3(_currentRoom.monsterList[l].transform.position.x, _currentRoom.monsterList[l].transform.position.y + 0.3f,
+                        _currentRoom.monsterList[l].transform.position.z);
+                    Vector3 rayDirect = rayEndPosition - rayStartPosition;
+                    Debug.DrawRay(rayStartPosition, rayDirect, Color.red);
+                    _canAttack = Physics.Raycast(rayStartPosition, rayDirect, out monsterRaycastHit);
+                    if (_canAttack)
                     {
-                        monsterDistance[_currentRoom.monsterList[l]] = Vector3.Distance(transform.position, _currentRoom.monsterList[l].transform.position);
-                        _target = F_SetPlayerAttackMonster(monsterDistance);
-                        _Finaltarget = _target;
-                        monsterTransform = _target.transform;
-                        _bullet_MoveVec = (monsterTransform.position - transform.position).normalized;
-                        continue;
-                    }
-                    else
-                    {
-                        monsterDistance[_currentRoom.monsterList[l]] = 1000f;
-                        _target = null;
-                        continue;
+                        if (monsterRaycastHit.collider.CompareTag("Monster"))
+                        {
+                            monsterDistance[_currentRoom.monsterList[l]] = Vector3.Distance(transform.position, _currentRoom.monsterList[l].transform.position);
+                            _target = F_SetPlayerAttackMonster(monsterDistance);
+                            Debug.Log(_target);
+                            if (Vector3.Distance(rayStartPosition, _target.transform.position) <= _attack_Range)
+                            {
+                            
+                                _finaltarget = _target;
+                                Debug.Log(_finaltarget);
+                                monsterTransform = _finaltarget.transform;
+                                _bullet_MoveVec = (monsterTransform.position - transform.position).normalized;
+                            }
+                            continue;
+                        }
+                        else
+                        {
+                            monsterDistance[_currentRoom.monsterList[l]] = 1000f;
+                            continue;
+                        }
                     }
                 }
             }
     }
 
-    private GameObject F_SetPlayerAttackMonster(Dictionary<GameObject, float> v_distanceDic)
+    public GameObject F_SetPlayerAttackMonster(Dictionary<GameObject, float> v_distanceDic)
     {
         v_distanceDic = v_distanceDic.OrderBy(d => d.Value).ToDictionary(d => d.Key, d => d.Value);
         return v_distanceDic.First().Key;
@@ -139,25 +151,27 @@ public class PlayerController : Singleton<PlayerController>
         }
         while (_bullet_Pool.Count > 0)
         {
-            //Debug.Log(_Finaltarget);
-            if (_Finaltarget != null)
+            Debug.Log(_finaltarget);
+            if (_finaltarget != null)
             {
-                if (Vector3.Distance(transform.position, _Finaltarget.transform.position) <= _attack_Range)
-                {
-                    PlayerBullet _pb = _bullet_Pool.Dequeue();
-                    _pb.gameObject.SetActive(true);
-                    _pb.F_MoveBullet(_bullet_MoveVec);
-                    _player_Animator.SetBool("Attack", true);
-                }
-                else
-                {
-                    _player_Animator.SetBool("Attack", false);
-                }
+                _player_Animator.SetBool("Attack", true);
             }
+            else
+            {
+                _player_Animator.SetBool("Attack", false);
+            }
+
             yield return new WaitForSeconds(1f);
         }
     }
-    
+
+    public void F_PlayerShootBullet()
+    {
+        Debug.Log(_finaltarget);
+        PlayerBullet _pb = _bullet_Pool.Dequeue();
+        _pb.gameObject.SetActive(true);
+        _pb.F_MoveBullet(_bullet_MoveVec);
+    }
 
 
     public void F_ReturnBulletPool(PlayerBullet v_pb)

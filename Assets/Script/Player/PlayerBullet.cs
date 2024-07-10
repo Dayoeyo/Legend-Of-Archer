@@ -34,6 +34,8 @@ public class PlayerBullet : MonoBehaviour
             if (collision.gameObject.CompareTag("Monster"))
             {
                 collision.transform.parent.GetComponent<RoomCondition>().F_ReturnEnemy(collision.gameObject);
+                PlayerController.Instance._finaltarget = null;
+                //PlayerController.Instance._finaltarget = PlayerController.Instance.F_SetPlayerAttackMonster(PlayerController.Instance.monsterDistance);
                 collision.gameObject.SetActive(false);
             }
         }

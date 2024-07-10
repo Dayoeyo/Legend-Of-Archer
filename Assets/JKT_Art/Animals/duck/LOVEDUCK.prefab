@@ -1368,7 +1368,7 @@ GameObject:
   - component: {fileID: 466016}
   - component: {fileID: 9565948}
   - component: {fileID: 123236259313502241}
-  - component: {fileID: 7099732687451072526}
+  - component: {fileID: 6909135906363092465}
   m_Layer: 6
   m_Name: LOVEDUCK
   m_TagString: Monster
@@ -1437,7 +1437,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 8, y: 8, z: 8}
   m_Center: {x: 0, y: 5, z: 1.11}
---- !u!54 &7099732687451072526
+--- !u!54 &6909135906363092465
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -11,7 +11,7 @@ public class MainCamera : MonoBehaviour
 
     private void Update()
     {
-
+        cameraPosition.x = GameManager.Instance._player.transform.position.x;
         cameraPosition.y = GameManager.Instance._player.transform.position.y + offsetY;
         cameraPosition.z = GameManager.Instance._player.transform.position.z + offsetZ;
 

@@ -53,7 +53,10 @@ public class JoystickController : Singleton<JoystickController>
         joystickVector = Vector3.zero;
         smallStick.transform.position = stickStartPosition;
         bigStick.transform.position = stickStartPosition;
-        GameManager.Instance._player.GetComponent<PlayerController>().transform.LookAt(PlayerController.Instance.monsterTransform);
+        if (PlayerController.Instance._finaltarget != null)
+        {
+            GameManager.Instance._player.GetComponent<PlayerController>().transform.LookAt(PlayerController.Instance.monsterTransform);
+        }
         GameManager.Instance._player.GetComponent<PlayerController>().playerAni.SetBool("Move", false);
     }
 
