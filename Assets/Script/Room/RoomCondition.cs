@@ -31,6 +31,11 @@ public class RoomCondition : Singleton<RoomCondition>
                 isMonsterHere = true;
             }
         }
+        if(other.CompareTag("Player") && !isMonsterHere)
+        {
+            isCleared = true;
+        }
+
         if (other.CompareTag("Player") && isMonsterHere)
         {
             playerInThisRoom = true;
