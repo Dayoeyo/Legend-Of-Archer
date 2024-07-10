@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Monster
+  - Bullet
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -13,8 +15,8 @@ TagManager:
   - Water
   - UI
   - Monster
-  - 
-  - 
+  - Bullet
+  - Player
   - 
   - 
   - 

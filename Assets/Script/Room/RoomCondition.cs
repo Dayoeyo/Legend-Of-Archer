@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RoomCondition : Singleton<RoomCondition>
@@ -8,6 +9,7 @@ public class RoomCondition : Singleton<RoomCondition>
     public bool isCleared = false;
     private List<GameObject> _monsterList = new List<GameObject>();
     public List<GameObject> monsterList => _monsterList;
+
 
     protected override void InitManager()
     {
@@ -21,10 +23,13 @@ public class RoomCondition : Singleton<RoomCondition>
         }
         if (other.CompareTag("Monster"))
         {
-            Debug.Log("There is Monster : " + other.gameObject.name);
             _monsterList.Add(other.gameObject);
             PlayerController.Instance.monsterDistance.Add(other.gameObject, 0f);
-            PlayerController.Instance.F_PlayeTrackingStart();
+            if (!PlayerController.Instance._isTracking)
+            {
+                PlayerController.Instance.F_PlayeTrackingStart();
+                PlayerController.Instance._isTracking = true;
+            }
         }
     }
 
